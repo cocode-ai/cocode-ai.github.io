@@ -69,6 +69,11 @@ body {
     max-height: 150px; /* Batasi tinggi maksimal */
 }
 
+/* Menyesuaikan input */
+.inputarea {
+    padding-left: 10px;
+}
+
 /* Tombol redesign agar lebih menonjol */
 #redesign-button {
     margin-right: 8px;
