@@ -70,7 +70,7 @@ body {
 }
 
 /* Menyesuaikan input */
-.inputarea {
+ion-input.inputarea {
     padding-left: 10px;
 }
 
