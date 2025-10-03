@@ -77,7 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 addMessage(data.code, 'assistant', false);
             // BARU: Tangani respons redesign secara khusus
             } else if (currentMode === 'redesign') {
-                addPreviewMessage(data.code); // Panggil fungsi baru untuk menampilkan tombol preview
+                // KIRIM KODE DAN ALASAN SEBAGAI OBJECT
+                addPreviewMessage(data.code, data.explanation); 
             }
         } catch (error) {
             console.error('Gagal mengambil data dari API:', error);
