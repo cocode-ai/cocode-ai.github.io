@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewModal = document.getElementById('preview-modal');
     const previewFrame = document.getElementById('preview-frame');
     const closeModalButton = document.getElementById('close-modal-button');
+    // TAMBAHKAN DUA ELEMENT BARU INI
+    const reasoningOutput = document.getElementById('reasoning-output');
+    const sourceCodeOutput = document.getElementById('source-code-output');
+    const copyCodeButton = document.getElementById('copy-code-button');
 
     // State Aplikasi
     let currentMode = 'chat';
