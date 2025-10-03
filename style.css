@@ -1,0 +1,85 @@
+/* Styling dasar */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+}
+
+/* Sembunyikan elemen */
+.hidden {
+    display: none !important;
+}
+
+/* Kontainer pesan */
+#message-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Gelembung pesan umum */
+.message-bubble {
+    padding: 10px 15px;
+    border-radius: 18px;
+    max-width: 85%;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* Gelembung pesan dari pengguna (user) */
+.user-message {
+    background-color: var(--ion-color-primary);
+    color: var(--ion-color-primary-contrast);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+/* Gelembung pesan dari AI (assistant) */
+.assistant-message {
+    background-color: var(--ion-color-light);
+    color: var(--ion-color-light-contrast);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+/* Styling untuk blok kode di dalam pesan AI */
+.assistant-message pre {
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    /* Warna background dari tema highlight.js */
+    background-color: #282c34; 
+}
+
+.assistant-message pre code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+}
+
+/* Indikator loading */
+#loading-indicator {
+    display: flex;
+    justify-content: flex-start;
+    padding: 10px 0;
+}
+
+/* Menyesuaikan textarea */
+ion-textarea {
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    --padding-start: 10px;
+    max-height: 150px; /* Batasi tinggi maksimal */
+}
+
+/* Tombol redesign agar lebih menonjol */
+#redesign-button {
+    margin-right: 8px;
+}
+
+/* BARU: Style untuk iframe di dalam modal */
+#preview-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: #ffffff; /* Warna background saat loading */
+}
