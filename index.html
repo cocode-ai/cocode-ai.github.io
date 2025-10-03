@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Coding & Redesign Partner</title>
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <ion-app>
+        <ion-header>
+            <ion-toolbar color="primary">
+                <ion-title>AI Partner</ion-title>
+            </ion-toolbar>
+            <ion-toolbar color="primary">
+                <ion-segment value="chat" id="mode-segment">
+                    <ion-segment-button value="chat">
+                        <ion-label>Chat</ion-label>
+                        <ion-icon name="chatbubbles-outline"></ion-icon>
+                    </ion-segment-button>
+                    <ion-segment-button value="code">
+                        <ion-label>Code</ion-label>
+                        <ion-icon name="code-slash-outline"></ion-icon>
+                    </ion-segment-button>
+                    <ion-segment-button value="redesign">
+                        <ion-label>Redesign</ion-label>
+                        <ion-icon name="color-palette-outline"></ion-icon>
+                    </ion-segment-button>
+                </ion-segment>
+            </ion-toolbar>
+        </ion-header>
+
+        <ion-content class="ion-padding" id="chat-content">
+            <div id="message-list">
+                </div>
+            <div id="loading-indicator" class="hidden">
+                <ion-spinner name="dots"></ion-spinner>
+            </div>
+        </ion-content>
+
+        <ion-footer>
+            <div id="chat-code-footer">
+                 <ion-toolbar>
+                    <ion-textarea id="chat-input" placeholder="Ketik pesan atau deskripsi kode..." auto-grow="true"></ion-textarea>
+                    <ion-buttons slot="end">
+                        <ion-button id="send-button">
+                            <ion-icon slot="icon-only" name="send"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </div>
+            <div id="redesign-footer" class="hidden">
+                <ion-toolbar>
+                    <ion-input id="url-input" placeholder="Masukkan URL website..."></ion-input>
+                </ion-toolbar>
+                <ion-toolbar>
+                    <ion-item>
+                         <ion-select id="style-select" label="Pilih Gaya Desain" value="modern">
+                            <ion-select-option value="modern">Modern</ion-select-option>
+                            <ion-select-option value="minimalist">Minimalist</ion-select-option>
+                            <ion-select-option value="glassmorphism">Glassmorphism</ion-select-option>
+                            <ion-select-option value="cyberpunk">Cyberpunk</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                    <ion-buttons slot="end">
+                        <ion-button id="redesign-button" fill="solid" color="primary">
+                            Redesign
+                            <ion-icon slot="end" name="sparkles"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </div>
+        </ion-footer>
+        
+        <ion-modal id="preview-modal">
+            <ion-content class="ion-no-padding">
+                <iframe id="preview-frame"></iframe>
+                <ion-fab vertical="top" horizontal="end" slot="fixed" class="ion-margin-top ion-margin-end">
+                    <ion-fab-button id="close-modal-button" color="light" size="small">
+                        <ion-icon name="close-outline"></ion-icon>
+                    </ion-fab-button>
+                </ion-fab>
+            </ion-content>
+        </ion-modal>
+
+    </ion-app>
+
+    <script src="script.js"></script>
+</body>
+</html>
