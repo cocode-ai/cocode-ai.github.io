@@ -70,8 +70,9 @@ body {
 }
 
 /* Menyesuaikan input */
-ion-input.inputarea {
+.inputarea {
     padding-left: 10px;
+    padding-right: 10px;
 }
 
 /* Tombol redesign agar lebih menonjol */
