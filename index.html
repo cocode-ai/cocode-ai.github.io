@@ -83,13 +83,45 @@
         </ion-footer>
         
         <ion-modal id="preview-modal">
-            <ion-content class="ion-no-padding">
-                <iframe id="preview-frame"></iframe>
-                <ion-fab vertical="top" horizontal="end" slot="fixed" class="ion-margin-top ion-margin-end">
-                    <ion-fab-button id="close-modal-button" color="light" size="small">
-                        <ion-icon name="close-outline"></ion-icon>
-                    </ion-fab-button>
-                </ion-fab>
+            <ion-header>
+                <ion-toolbar color="light">
+                    <ion-title>Preview & Kode Desain</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button id="close-modal-button" color="dark">
+                            <ion-icon name="close-outline"></ion-icon>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content>
+                <ion-grid class="ion-no-padding">
+                    <ion-row>
+                        <ion-col size="12" size-md="7" class="ion-no-padding">
+                            <div style="height: 60vh; border-bottom: 1px solid var(--ion-color-medium); border-right: 1px solid var(--ion-color-medium);">
+                                <iframe id="preview-frame" style="width: 100%; height: 100%; border: none;"></iframe>
+                            </div>
+                        </ion-col>
+                        
+                        <ion-col size="12" size-md="5" class="ion-padding">
+                            <ion-card>
+                                <ion-card-header>
+                                    <ion-card-title>Catatan Desain (Reasoning)</ion-card-title>
+                                </ion-card-header>
+                                <ion-card-content id="reasoning-output">
+                                    </ion-card-content>
+                            </ion-card>
+
+                            <h3 class="ion-padding-start">Kode Sumber</h3>
+                            <div class="ion-padding">
+                                <ion-button id="copy-code-button" expand="full" color="secondary" size="small">
+                                    <ion-icon name="copy-outline" slot="start"></ion-icon>
+                                    Salin Kode
+                                </ion-button>
+                                <pre style="max-height: 25vh; overflow-y: auto;"><code id="source-code-output" class="html"></code></pre>
+                            </div>
+                        </ion-col>
+                    </ion-row>
+                </ion-grid>
             </ion-content>
         </ion-modal>
 
