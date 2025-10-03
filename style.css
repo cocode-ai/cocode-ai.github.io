@@ -67,7 +67,7 @@ body {
 ion-textarea {
     --padding-top: 10px;
     --padding-bottom: 10px;
-    --padding-start: 10px;
+    padding-left: 10px;
     max-height: 150px; /* Batasi tinggi maksimal */
 }
 
