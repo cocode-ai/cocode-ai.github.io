@@ -92,32 +92,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * BARU: Fungsi untuk menampilkan pesan dengan tombol preview
-     * @param {string} generatedCode - Kode HTML hasil dari API
+     * @param {string} generatedCode - Kode HTML murni hasil dari API
+     * @param {string} reasoning - Alasan/penjelasan desain dari API
      */
-    const addPreviewMessage = (generatedCode) => {
+    const addPreviewMessage = (generatedCode, reasoning) => {
         const bubble = document.createElement('div');
         bubble.classList.add('message-bubble', 'assistant-message');
 
         const text = document.createElement('p');
-        text.textContent = 'Desain berhasil dibuat! Klik tombol di bawah untuk melihat hasilnya secara fullscreen.';
+        text.textContent = 'Desain berhasil dibuat! Klik tombol di bawah untuk melihat Preview dan Kode Sumber.';
         
         const previewButton = document.createElement('ion-button');
         previewButton.color = 'primary';
         previewButton.fill = 'solid';
-        previewButton.innerHTML = '<ion-icon name="eye-outline" slot="start"></ion-icon>Lihat Preview';
+        previewButton.innerHTML = '<ion-icon name="eye-outline" slot="start"></ion-icon>Lihat Preview & Kode';
         
         previewButton.onclick = () => {
-            // Menggunakan Blob untuk memuat HTML ke iframe dengan aman
+            // 1. ISI ELEMENT MODAL DENGAN KODE & REASONING
+            
+            // Tampilkan Reasoning
+            reasoningOutput.textContent = reasoning;
+            
+            // Tampilkan Kode Sumber
+            sourceCodeOutput.textContent = generatedCode;
+            hljs.highlightElement(sourceCodeOutput); // Highlight kode
+            
+            // 2. MUAT PREVIEW KE IFRAME
             const blob = new Blob([generatedCode], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             previewFrame.src = url;
             previewModal.present();
             
-            // Hapus URL object setelah iframe selesai memuat untuk menghemat memori
             previewFrame.onload = () => {
                 URL.revokeObjectURL(url);
             }
         };
+
+        // Tambahkan Event Listener Copy
+        copyCodeButton.onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(generatedCode);
+                alert('Kode berhasil disalin!');
+            } catch (err) {
+                console.error('Gagal menyalin kode: ', err);
+                alert('Gagal menyalin kode. Browser tidak mendukung clipboard API.');
+            }
+        };
+
 
         bubble.appendChild(text);
         bubble.appendChild(previewButton);
