@@ -26,10 +26,78 @@ document.addEventListener('DOMContentLoaded', () => {
     const sourceCodeOutput = document.getElementById('source-code-output');
     const copyCodeButton = document.getElementById('copy-code-button');
 
+    // Elemen Pengaturan
+    const settingsModal = document.getElementById('settings-modal');
+    const settingsButton = document.getElementById('settings-button');
+    const closeSettingsModalButton = document.getElementById('close-settings-modal-button');
+    const clearHistoryButton = document.getElementById('clear-history-button');
+    const subscribeButton = document.getElementById('subscribe-button');
+    // UI Status di Modal
+    const premiumStatusMessage = document.getElementById('premium-status-message');
+    const generationCountDisplay = document.getElementById('generation-count-display');
+
     // State Aplikasi
+    const MAX_FREE_GENERATIONS = 2;
     let currentMode = 'chat';
     let chatHistory = []; 
     let isLoading = false;
+    let isPremium = false;
+    let generationCount = 0;
+
+    // --- FUNGSI-FUNGSI BARU UNTUK STATUS PENGGUNA ---
+
+    /**
+     * Memperbarui tampilan di modal pengaturan berdasarkan status pengguna
+     */
+    const updateSettingsUI = () => {
+        if (isPremium) {
+            premiumStatusMessage.textContent = 'Status: Akun Premium Aktif';
+            premiumStatusMessage.color = 'success';
+            generationCountDisplay.classList.add('hidden');
+            subscribeButton.classList.add('hidden');
+        } else {
+            premiumStatusMessage.textContent = 'Status: Akun Gratis';
+            premiumStatusMessage.color = 'medium';
+            generationCountDisplay.classList.remove('hidden');
+            const remaining = MAX_FREE_GENERATIONS - generationCount;
+            generationCountDisplay.textContent = `Sisa penggunaan (Code/Redesign): ${remaining > 0 ? remaining : 0} kali.`;
+            subscribeButton.classList.remove('hidden');
+        }
+    };
+
+    /**
+     * Memeriksa status premium dari URL atau localStorage saat aplikasi dimuat.
+     */
+    const loadUserStatus = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment') === 'success') {
+            showToast('Pembayaran berhasil! Selamat datang di mode Premium.', 'success');
+            isPremium = true;
+            // Simpan status premium dengan tanggal kadaluarsa (misal: 30 hari)
+            const expiryDate = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
+            localStorage.setItem('aiPartnerPremium', JSON.stringify({ premium: true, expiry: expiryDate }));
+            localStorage.removeItem('aiPartnerGenCount'); // Hapus counter gratis
+            generationCount = 0;
+            // Hapus parameter dari URL agar tidak aktif lagi saat refresh
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+            // Cek dari localStorage jika bukan dari redirect pembayaran
+            const premiumData = JSON.parse(localStorage.getItem('aiPartnerPremium'));
+            if (premiumData && premiumData.premium && new Date().getTime() < premiumData.expiry) {
+                isPremium = true;
+            } else {
+                isPremium = false;
+                // Jika sudah kadaluarsa, hapus dari storage
+                if(premiumData) localStorage.removeItem('aiPartnerPremium');
+            }
+        }
+
+        if (!isPremium) {
+            generationCount = parseInt(localStorage.getItem('aiPartnerGenCount')) || 0;
+        }
+
+        updateSettingsUI();
+    };
 
     // --- FUNGSI UTAMA ---
 
@@ -39,6 +107,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let userMessageContent = '';
         let endpoint = '';
         let payload = {};
+
+        // Cek batasan untuk pengguna gratis
+        if ((currentMode === 'code' || currentMode === 'redesign') && !isPremium) {
+            if (generationCount >= MAX_FREE_GENERATIONS) {
+                showToast('Anda telah mencapai batas penggunaan gratis. Silakan berlangganan Premium.', 'warning');
+                setLoading(false);
+                return; // Hentikan eksekusi
+            }
+        }
 
         setLoading(true);
 
@@ -80,6 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // KIRIM KODE DAN ALASAN SEBAGAI OBJECT
                 addPreviewMessage(data.code, data.explanation); 
             }
+
+            // Jika bukan premium, tambah jumlah generate
+            if ((currentMode === 'code' || currentMode === 'redesign') && !isPremium) {
+                generationCount++;
+                localStorage.setItem('aiPartnerGenCount', generationCount);
+                updateSettingsUI(); // Perbarui UI di modal pengaturan
+            }
+
         } catch (error) {
             console.error('Gagal mengambil data dari API:', error);
             addMessage(`Maaf, terjadi kesalahan: ${error.message}`, 'assistant', false);
@@ -186,6 +271,50 @@ document.addEventListener('DOMContentLoaded', () => {
         chatContent.scrollToBottom(500);
     };
 
+    const showToast = async (message, color = 'dark', duration = 2000) => {
+        const toast = document.createElement('ion-toast');
+        toast.message = message;
+        toast.duration = duration;
+        toast.color = color;
+        document.body.appendChild(toast);
+        return toast.present();
+    };
+
+    const handleClearHistory = () => {
+        chatHistory = [];
+        saveHistory();
+        messageList.innerHTML = '';
+        addMessage("Riwayat chat telah dibersihkan.", 'assistant', false);
+        showToast('Riwayat chat berhasil dihapus', 'success');
+        settingsModal.dismiss();
+    };
+
+    const handleSubscribe = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(API_BASE_URL + '/create-paypal-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error('Gagal membuat pesanan PayPal.');
+            }
+
+            const data = await response.json();
+            if (data.approvalUrl) {
+                window.location.href = data.approvalUrl;
+            } else {
+                throw new Error('Tidak ada URL persetujuan dari PayPal.');
+            }
+        } catch (error) {
+            console.error('Error berlangganan:', error);
+            showToast(error.message, 'danger');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const switchMode = (newMode) => {
         currentMode = newMode;
         messageList.innerHTML = '';
@@ -221,8 +350,14 @@ document.addEventListener('DOMContentLoaded', () => {
         previewModal.dismiss();
     });
 
+    // Event Listener Pengaturan
+    settingsButton.addEventListener('click', () => settingsModal.present());
+    closeSettingsModalButton.addEventListener('click', () => settingsModal.dismiss());
+    clearHistoryButton.addEventListener('click', handleClearHistory);
+    subscribeButton.addEventListener('click', handleSubscribe);
+
     // --- INISIALISASI ---
     loadHistory(); 
+    loadUserStatus();
     switchMode('chat');
 });
-
