@@ -17,11 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const styleSelect = document.getElementById('style-select');
     const redesignButton = document.getElementById('redesign-button');
     
-    // BARU: Seleksi Elemen Modal
+    // Seleksi Elemen Modal
     const previewModal = document.getElementById('preview-modal');
     const previewFrame = document.getElementById('preview-frame');
     const closeModalButton = document.getElementById('close-modal-button');
-    // TAMBAHKAN DUA ELEMENT BARU INI
     const reasoningOutput = document.getElementById('reasoning-output');
     const sourceCodeOutput = document.getElementById('source-code-output');
     const copyCodeButton = document.getElementById('copy-code-button');
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSettingsModalButton = document.getElementById('close-settings-modal-button');
     const clearHistoryButton = document.getElementById('clear-history-button');
     const subscribeButton = document.getElementById('subscribe-button');
-    // UI Status di Modal
     const premiumStatusMessage = document.getElementById('premium-status-message');
     const generationCountDisplay = document.getElementById('generation-count-display');
 
@@ -44,11 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPremium = false;
     let generationCount = 0;
 
-    // --- FUNGSI-FUNGSI BARU UNTUK STATUS PENGGUNA ---
+    // --- FUNGSI STATUS PENGGUNA ---
 
-    /**
-     * Memperbarui tampilan di modal pengaturan berdasarkan status pengguna
-     */
     const updateSettingsUI = () => {
         if (isPremium) {
             premiumStatusMessage.textContent = 'Status: Akun Premium Aktif';
@@ -65,29 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /**
-     * Memeriksa status premium dari URL atau localStorage saat aplikasi dimuat.
-     */
     const loadUserStatus = () => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('payment') === 'success') {
             showToast('Pembayaran berhasil! Selamat datang di mode Premium.', 'success');
             isPremium = true;
-            // Simpan status premium dengan tanggal kadaluarsa (misal: 30 hari)
             const expiryDate = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
             localStorage.setItem('aiPartnerPremium', JSON.stringify({ premium: true, expiry: expiryDate }));
-            localStorage.removeItem('aiPartnerGenCount'); // Hapus counter gratis
+            localStorage.removeItem('aiPartnerGenCount');
             generationCount = 0;
-            // Hapus parameter dari URL agar tidak aktif lagi saat refresh
             window.history.replaceState({}, document.title, window.location.pathname);
         } else {
-            // Cek dari localStorage jika bukan dari redirect pembayaran
             const premiumData = JSON.parse(localStorage.getItem('aiPartnerPremium'));
             if (premiumData && premiumData.premium && new Date().getTime() < premiumData.expiry) {
                 isPremium = true;
             } else {
                 isPremium = false;
-                // Jika sudah kadaluarsa, hapus dari storage
                 if(premiumData) localStorage.removeItem('aiPartnerPremium');
             }
         }
@@ -108,12 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let endpoint = '';
         let payload = {};
 
-        // Cek batasan untuk pengguna gratis
         if ((currentMode === 'code' || currentMode === 'redesign') && !isPremium) {
             if (generationCount >= MAX_FREE_GENERATIONS) {
                 showToast('Anda telah mencapai batas penggunaan gratis. Silakan berlangganan Premium.', 'warning');
                 setLoading(false);
-                return; // Hentikan eksekusi
+                return;
             }
         }
 
@@ -152,17 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 addMessage(data.response, 'assistant', true);
             } else if (currentMode === 'code') {
                 addMessage(data.code, 'assistant', false);
-            // BARU: Tangani respons redesign secara khusus
             } else if (currentMode === 'redesign') {
-                // KIRIM KODE DAN ALASAN SEBAGAI OBJECT
                 addPreviewMessage(data.code, data.explanation); 
             }
 
-            // Jika bukan premium, tambah jumlah generate
             if ((currentMode === 'code' || currentMode === 'redesign') && !isPremium) {
                 generationCount++;
                 localStorage.setItem('aiPartnerGenCount', generationCount);
-                updateSettingsUI(); // Perbarui UI di modal pengaturan
+                updateSettingsUI();
             }
 
         } catch (error) {
@@ -175,11 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FUNGSI PEMBANTU ---
 
-    /**
-     * BARU: Fungsi untuk menampilkan pesan dengan tombol preview
-     * @param {string} generatedCode - Kode HTML murni hasil dari API
-     * @param {string} reasoning - Alasan/penjelasan desain dari API
-     */
     const addPreviewMessage = (generatedCode, reasoning) => {
         const bubble = document.createElement('div');
         bubble.classList.add('message-bubble', 'assistant-message');
@@ -193,16 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
         previewButton.innerHTML = '<ion-icon name="eye-outline" slot="start"></ion-icon>Lihat Preview & Kode';
         
         previewButton.onclick = () => {
-            // 1. ISI ELEMENT MODAL DENGAN KODE & REASONING
-            
-            // Tampilkan Reasoning
             reasoningOutput.textContent = reasoning;
-            
-            // Tampilkan Kode Sumber
             sourceCodeOutput.textContent = generatedCode;
-            hljs.highlightElement(sourceCodeOutput); // Highlight kode
+            hljs.highlightElement(sourceCodeOutput);
             
-            // 2. MUAT PREVIEW KE IFRAME
             const blob = new Blob([generatedCode], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             previewFrame.src = url;
@@ -213,17 +186,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Tambahkan Event Listener Copy
         copyCodeButton.onclick = async () => {
             try {
                 await navigator.clipboard.writeText(generatedCode);
-                alert('Kode berhasil disalin!');
+                showToast('Kode berhasil disalin!', 'success');
             } catch (err) {
                 console.error('Gagal menyalin kode: ', err);
-                alert('Gagal menyalin kode. Browser tidak mendukung clipboard API.');
+                showToast('Gagal menyalin kode.', 'danger');
             }
         };
-
 
         bubble.appendChild(text);
         bubble.appendChild(previewButton);
@@ -244,6 +215,87 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error("Gagal memuat riwayat chat:", e); chatHistory = []; }
     };
 
+    // BARU: Fungsi untuk menambahkan tombol copy pada setiap code block
+    const addCopyButtonToCodeBlocks = (container) => {
+        const codeBlocks = container.querySelectorAll('pre code');
+        
+        codeBlocks.forEach((codeBlock) => {
+            const pre = codeBlock.parentElement;
+            
+            // Cek apakah sudah ada tombol copy
+            if (pre.querySelector('.copy-button')) return;
+            
+            // Buat wrapper untuk pre agar bisa positioning relative
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            wrapper.style.marginBottom = '10px';
+            
+            // Pindahkan pre ke dalam wrapper
+            pre.parentNode.insertBefore(wrapper, pre);
+            wrapper.appendChild(pre);
+            
+            // Buat tombol copy
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-button';
+            copyBtn.innerHTML = '<ion-icon name="copy-outline"></ion-icon>';
+            copyBtn.title = 'Salin kode';
+            
+            // Style tombol
+            copyBtn.style.position = 'absolute';
+            copyBtn.style.top = '8px';
+            copyBtn.style.right = '8px';
+            copyBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+            copyBtn.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+            copyBtn.style.borderRadius = '6px';
+            copyBtn.style.padding = '6px 10px';
+            copyBtn.style.cursor = 'pointer';
+            copyBtn.style.color = '#fff';
+            copyBtn.style.fontSize = '18px';
+            copyBtn.style.display = 'flex';
+            copyBtn.style.alignItems = 'center';
+            copyBtn.style.justifyContent = 'center';
+            copyBtn.style.transition = 'all 0.2s ease';
+            copyBtn.style.zIndex = '10';
+            
+            // Hover effect
+            copyBtn.onmouseenter = () => {
+                copyBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+                copyBtn.style.transform = 'scale(1.05)';
+            };
+            copyBtn.onmouseleave = () => {
+                copyBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                copyBtn.style.transform = 'scale(1)';
+            };
+            
+            // Event click untuk copy
+            copyBtn.onclick = async (e) => {
+                e.preventDefault();
+                const code = codeBlock.textContent;
+                
+                try {
+                    await navigator.clipboard.writeText(code);
+                    
+                    // Feedback visual
+                    const originalHTML = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<ion-icon name="checkmark-outline"></ion-icon>';
+                    copyBtn.style.background = 'rgba(16, 185, 129, 0.3)';
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHTML;
+                        copyBtn.style.background = 'rgba(255, 255, 255, 0.1)';
+                    }, 2000);
+                    
+                    showToast('Kode berhasil disalin!', 'success', 1500);
+                } catch (err) {
+                    console.error('Gagal menyalin:', err);
+                    showToast('Gagal menyalin kode', 'danger');
+                }
+            };
+            
+            wrapper.appendChild(copyBtn);
+        });
+    };
+
     const addMessage = (text, role, save = false) => {
         if (save) {
             chatHistory.push({ role, content: text });
@@ -253,11 +305,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const bubble = document.createElement('div');
         bubble.classList.add('message-bubble', `${role}-message`);
         
-        if (role === 'assistant') { bubble.innerHTML = marked.parse(text); } 
-        else { bubble.textContent = text; }
+        if (role === 'assistant') { 
+            bubble.innerHTML = marked.parse(text);
+            
+            // Highlight code blocks
+            bubble.querySelectorAll('pre code').forEach(hljs.highlightElement);
+            
+            // BARU: Tambahkan tombol copy ke semua code blocks
+            addCopyButtonToCodeBlocks(bubble);
+        } 
+        else { 
+            bubble.textContent = text; 
+        }
 
         messageList.appendChild(bubble);
-        bubble.querySelectorAll('pre code').forEach(hljs.highlightElement);
         scrollToBottom();
     };
     
@@ -326,13 +387,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newMode === 'chat') {
             chatHistory.forEach(msg => addMessage(msg.content, msg.role, false));
              if (chatHistory.length === 0) {
-                 addMessage("Halo! Ada yang bisa saya bantu hari ini?", 'assistant', true);
+                 addMessage("Halo! Saya AI Assistant yang dapat membantu Anda dengan berbagai hal:\n\n💬 **Chat**: Tanya apa saja tentang berbagai topik\n💻 **Code Generator**: Buat kode dalam berbagai bahasa programming (JavaScript, Python, HTML, CSS, dll)\n🎨 **Website Redesign**: Desain ulang website dengan gaya modern, minimalist, glassmorphism, cyberpunk, dan lainnya\n\nApa yang bisa saya bantu hari ini?", 'assistant', true);
              }
+        } else if (newMode === 'code') {
+            addMessage("Mode **Code Generator** aktif!\n\nSilakan deskripsikan kode yang Anda inginkan. Contoh:\n- Buat fungsi JavaScript untuk validasi email\n- Buat kode Python untuk web scraping\n- Buat landing page HTML dengan CSS modern\n\nKode akan otomatis dilengkapi dengan syntax highlighting dan tombol copy.", 'assistant', false);
         } else {
-            let welcomeMessage = newMode === 'code'
-                ? "Silakan deskripsikan kode yang Anda inginkan..."
-                : "Masukkan URL website yang ingin Anda desain ulang...";
-            addMessage(welcomeMessage, 'assistant', false);
+            addMessage("Mode **Website Redesign** aktif!\n\nMasukkan URL website yang ingin Anda desain ulang, kemudian pilih gaya desain:\n- **Modern**: Gradient, shadow, animasi smooth\n- **Minimalist**: Clean, whitespace, typography focus\n- **Glassmorphism**: Backdrop blur, transparansi\n- **Cyberpunk**: Neon colors, futuristic style\n\nHasil akan ditampilkan dengan preview langsung dan source code yang bisa Anda salin.", 'assistant', false);
         }
     };
 
@@ -345,12 +405,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
     });
     
-    // BARU: Event listener untuk tombol close modal
     closeModalButton.addEventListener('click', () => {
         previewModal.dismiss();
     });
 
-    // Event Listener Pengaturan
     settingsButton.addEventListener('click', () => settingsModal.present());
     closeSettingsModalButton.addEventListener('click', () => settingsModal.dismiss());
     clearHistoryButton.addEventListener('click', handleClearHistory);
